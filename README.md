@@ -8,6 +8,7 @@ A pico-specific build for the most optimal VLP system, as found in my [VLP simul
 $ mkdir third_party
 $ cd third_party
 $ git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
+$ git clone --recurse-submodules https://github.com/raspberrypi/pico-tflmicro.git
 ```
 
 ```bash
