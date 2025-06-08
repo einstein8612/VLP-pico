@@ -6,41 +6,48 @@
 
 #include "model/model.h"
 #include "io/io.h"
+#include "debug.h"
 
-int main() {
+int main()
+{
     io_init();
+    DEBUG_LED_INIT();
 
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-    gpio_put(PICO_DEFAULT_LED_PIN, 0);
-
-    if (load_model() != kTfLiteOk) {
+    if (load_model() != kTfLiteOk)
+    {
         return 1;
     }
 
-    while (!stdio_usb_connected()) {
+    while (!stdio_usb_connected())
+    {
         sleep_ms(100); // Wait for USB connection
     }
 
-    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    // Indicate that the program is running
+    DEBUG_LED_SET(true);
 
-    while (true) {
+    while (true)
+    {
         sleep_ms(1); // Sleep to avoid busy-waiting
-    
+
         // Read a packet with a timeout
         IncomingPacket packet;
         int result = read_packet(100, &packet);
-        if (result == PICO_ERROR_TIMEOUT) {
+        if (result == PICO_ERROR_TIMEOUT)
+        {
             continue;
         }
 
         float x, y;
-        if (predict(packet.leds, &x, &y) != kTfLiteOk) {
-            printf("Failed to run inference\n");
+        if (predict(packet.leds, &x, &y) != kTfLiteOk)
+        {
             continue;
         }
 
-        if (packet.eval) {
+        DEBUG_LED_BLINK(5, 100);
+
+        if (packet.eval)
+        {
             write_packet(x, y);
             continue;
         }

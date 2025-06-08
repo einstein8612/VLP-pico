@@ -32,6 +32,10 @@ file(GLOB_RECURSE VLP_SOURCES
 
 add_executable(vlp_pico ${VLP_SOURCES})
 
+if(DEBUG_LED)
+    target_compile_definitions(vlp_pico PRIVATE DEBUG_LED) # Define DEBUG mode if needed
+endif()
+
 pico_enable_stdio_usb(vlp_pico 1)
 pico_enable_stdio_uart(vlp_pico 0)
 

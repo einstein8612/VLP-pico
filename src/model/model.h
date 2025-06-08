@@ -4,11 +4,12 @@
 #include "tensorflow/lite/core/c/common.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-TfLiteStatus load_model();
-TfLiteStatus predict(float leds[36], float* x, float* y);
+    TfLiteStatus load_model(void);
+    TfLiteStatus predict(float leds[36], float *x, float *y);
 
 #ifdef __cplusplus
 }

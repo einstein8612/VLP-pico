@@ -15,7 +15,7 @@ def main():
     with serial.Serial("/dev/ttyACM0", 9600, timeout=100) as ser:
         now = time.time()
         for _ in range(1000):
-            packet = pack_input(0, np.random.normal(size=36).astype(np.float32).tolist())
+            packet = pack_input(1, np.random.normal(size=36).astype(np.float32).tolist())
             ser.write(packet)
 
             bytes = ser.read_until(expected=b"BIGGER_THAN_8", size=8)

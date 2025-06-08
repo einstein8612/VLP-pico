@@ -11,7 +11,8 @@
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-namespace {
+namespace
+{
     const tflite::Model *model = nullptr;
     tflite::MicroInterpreter *interpreter = nullptr;
     TfLiteTensor *input = nullptr;
@@ -19,9 +20,9 @@ namespace {
 
     constexpr int kTensorArenaSize = 128 * 1024;
     alignas(16) uint8_t tensor_arena[kTensorArenaSize];
-}  // namespace
+} // namespace
 
-TfLiteStatus load_model()
+TfLiteStatus load_model(void)
 {
     tflite::InitializeTarget();
 
@@ -49,11 +50,14 @@ TfLiteStatus load_model()
     return kTfLiteOk;
 }
 
-TfLiteStatus predict(float leds[36], float* x, float* y) {
-    if (!interpreter) return kTfLiteError;
+TfLiteStatus predict(float leds[36], float *x, float *y)
+{
+    if (!interpreter)
+        return kTfLiteError;
 
     // Place the quantized input in the model's input tensor
-    for (int i = 0; i < 36; i++) {
+    for (int i = 0; i < 36; i++)
+    {
         input->data.int8[i] = static_cast<int8_t>(
             (leds[i] / input->params.scale) + input->params.zero_point);
     }
