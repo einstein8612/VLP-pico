@@ -18,16 +18,15 @@ int main() {
         return 1;
     }
 
+    while (!stdio_usb_connected()) {
+        sleep_ms(100); // Wait for USB connection
+    }
+
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
 
     while (true) {
-        sleep_ms(10); // Sleep to avoid busy-waiting
+        sleep_ms(1); // Sleep to avoid busy-waiting
     
-        // Check if USB is connected before reading input
-        if (!stdio_usb_connected()) {
-            continue;
-        }
-
         // Read a packet with a timeout
         IncomingPacket packet;
         int result = read_packet(100, &packet);
@@ -41,7 +40,12 @@ int main() {
             continue;
         }
 
-        write_packet(x, y);
+        if (packet.eval) {
+            write_packet(x, y);
+            continue;
+        }
+
+        // If not evaluating, do led degradation logic
     }
 
     return 0;
