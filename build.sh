@@ -1,16 +1,32 @@
 #!/bin/sh
 
-# Clean up any previous build artifacts if clean is specified
-if [ "$1" = "--clean" ]; then
-    echo "Cleaning previous build artifacts..."
+DEBUG_LED=0
+CLEAN_BUILD=0
+
+# Parse all arguments
+for arg in "$@"; do
+    case "$arg" in
+        --debug)
+            echo "🔧 Debug mode enabled"
+            DEBUG_LED=1
+            ;;
+        --clean)
+            CLEAN_BUILD=1
+            ;;
+    esac
+done
+
+# Clean build directory if requested
+if [ $CLEAN_BUILD -eq 1 ]; then
+    echo "🧹 Cleaning build directory"
     rm -rf build
-    echo "Clean complete"
 fi
 
 mkdir -p build
-cd build
-cmake ..
-make -j$(nproc)
+cd build || exit 1
+
+cmake -G Ninja -DPICO_BOARD=pico -DDEBUG_LED=${DEBUG_LED} ..
+ninja
 if [ $? -ne 0 ]; then
     echo "Build failed"
     exit 1
