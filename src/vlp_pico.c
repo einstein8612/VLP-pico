@@ -8,6 +8,8 @@
 #include "io/io.h"
 #include "debug.h"
 
+#include "data/data.h"
+
 int main()
 {
     io_init();
