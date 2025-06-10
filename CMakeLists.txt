@@ -14,12 +14,9 @@ add_compile_options(-Wall -Winline)
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# === TFLM Setup library ===
-
-# Set up TensorFlow Lite Micro include paths
+# Add the path to the third-party libraries besides pico-sdk
 add_subdirectory(third_party/pico-tflmicro)
-
-# === TFLM END ===
+add_subdirectory(third_party/ransac-line)
 
 # Add the path to the source files
 include_directories(src)
@@ -42,6 +39,7 @@ pico_enable_stdio_uart(vlp_pico 0)
 # Add pico_stdlib library which aggregates commonly used features
 target_link_libraries(vlp_pico pico_stdlib)
 target_link_libraries(vlp_pico pico-tflmicro)
+target_link_libraries(vlp_pico ransac_line)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(vlp_pico)

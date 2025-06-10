@@ -1,17 +1,20 @@
 #include "data.h"
+
 #include "downsampled_data.h"
+#include "lambertian.h"
 
 #include <stdint.h>
 
-typedef struct {
-    const float* data;
+typedef struct
+{
+    const float *data;
     int x_offset;
     int y_offset;
 } QuadrantInfo;
 
 static inline QuadrantInfo get_quadrant_info(int x, int y)
 {
-    QuadrantInfo qinfo = { .data = (void*)0, .x_offset = 0, .y_offset = 0 };
+    QuadrantInfo qinfo = {.data = (void *)0, .x_offset = 0, .y_offset = 0};
 
     if (x >= cross_x_end && y >= cross_y_end) // Q1
     {
@@ -37,13 +40,14 @@ static inline QuadrantInfo get_quadrant_info(int x, int y)
     return qinfo;
 }
 
-static inline int div_round_nearest(int a, int b) {
+static inline int div_round_nearest(int a, int b)
+{
     return (a + (b >> 1)) / b;
 }
 
 static inline int get_flattened_index(int w, int h)
 {
-    return h * (downsampled_data_q_width * downsampled_data_q_len) + w * downsampled_data_q_no_led;
+    return h * (downsampled_data_q_width * downsampled_data_q_no_led) + w * downsampled_data_q_no_led;
 }
 
 static inline void round_to_cross_points(int *x, int *y)
@@ -76,14 +80,14 @@ static inline int clamp_index(int value, int max)
     return value;
 }
 
-const float* get_nearest_data_all_leds(int x, int y, int *nearest_x, int *nearest_y)
+const float *get_nearest_data_all_leds(int x, int y, int *nearest_x, int *nearest_y)
 {
     // Ensure led_index is within bounds
     round_to_cross_points(&x, &y);
 
     QuadrantInfo qinfo = get_quadrant_info(x, y);
     if (!qinfo.data)
-        return (void*) 0;
+        return (void *)0;
 
     // Adjust to quadrant space
     int local_x = x - qinfo.x_offset;
@@ -102,4 +106,25 @@ const float* get_nearest_data_all_leds(int x, int y, int *nearest_x, int *neares
     *nearest_y = *nearest_y * downsampled_data_factor + qinfo.y_offset;
 
     return &qinfo.data[flattened_index];
+}
+
+int get_augmented_data(int x, int y, float *out_data)
+{
+    int nearest_x, nearest_y;
+    const float *data = get_nearest_data_all_leds(x, y, &nearest_x, &nearest_y);
+    if (!data)
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < TX_POSITIONS_COUNT; i++)
+    {
+        out_data[i] = reconstruct_rss_lambertian_float(
+            data[i],
+            x, y,
+            nearest_x, nearest_y,
+            i);
+    }
+
+    return 0;
 }
