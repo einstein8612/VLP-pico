@@ -10,6 +10,8 @@
 
 #include "data/data.h"
 
+#include "degradation_model/degradation_model.h"
+
 int main()
 {
     io_init();

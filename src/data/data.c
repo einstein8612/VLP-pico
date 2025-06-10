@@ -128,3 +128,19 @@ int get_augmented_data(int x, int y, float *out_data)
 
     return 0;
 }
+
+float get_augmented_data_for_led(int x, int y, int l_index)
+{
+    int nearest_x, nearest_y;
+    const float *data = get_nearest_data_all_leds(x, y, &nearest_x, &nearest_y);
+    if (!data)
+    {
+        return -1;
+    }
+
+    return reconstruct_rss_lambertian_float(
+        data[l_index],
+        x, y,
+        nearest_x, nearest_y,
+        l_index);
+}

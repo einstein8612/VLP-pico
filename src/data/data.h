@@ -30,4 +30,16 @@ const float *get_nearest_data_all_leds(int x, int y, int *nearest_x, int *neares
  */
 int get_augmented_data(int x, int y, float *out_data);
 
+/*! \brief Get augmented data for given coordinates
+ *
+ * This function retrieves the nearest downsampled data point and reconstructs
+ * the RSS values for the given LED index at the specified coordinates using the Lambertian model.
+ *
+ * \param x The x-coordinate in the original (non-downsampled) space
+ * \param y The y-coordinate in the original (non-downsampled) space
+ * \param l_index The LED index for which the augmented data is requested
+ * \return The reconstructed RSS value for the specified LED index, or -1 if no data is available
+ */
+float get_augmented_data_for_led(int x, int y, int l_index);
+
 #endif // DATA_H
