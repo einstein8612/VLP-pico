@@ -16,6 +16,6 @@
  * \param nearest_y Pointer to store the adjusted y-coordinate in the downsampled space
  * \return A const pointer to the first of 36 LED values, or NULL if out of bounds
  */
-float* get_nearest_data_all_leds(int x, int y, int* nearest_x, int* nearest_y);
+const float* get_nearest_data_all_leds(int x, int y, int* nearest_x, int* nearest_y);
 
 #endif // DATA_H
