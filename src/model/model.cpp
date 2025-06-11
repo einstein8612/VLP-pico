@@ -1,5 +1,6 @@
 #include "model.h"
 
+#include "../degradation_model/degradation_model.h"
 #include "model_data.h"
 
 #include "tensorflow/lite/core/c/common.h"
@@ -55,11 +56,13 @@ TfLiteStatus predict(float leds[36], float *x, float *y)
     if (!interpreter)
         return kTfLiteError;
 
+    float *scalars = get_scalars();
+
     // Place the quantized input in the model's input tensor
     for (int i = 0; i < 36; i++)
     {
         input->data.int8[i] = static_cast<int8_t>(
-            (leds[i] / input->params.scale) + input->params.zero_point);
+            ((leds[i] * scalars[i]) / input->params.scale) + input->params.zero_point);
     }
 
     // Run inference

@@ -12,6 +12,11 @@
 
 #include "degradation_model/degradation_model.h"
 
+static inline int div_round_nearest(int a, int b)
+{
+    return (a + (b >> 1)) / b;
+}
+
 int main()
 {
     io_init();
@@ -57,6 +62,11 @@ int main()
         }
 
         // If not evaluating, do led degradation logic
+        bool updated = add_sample(packet.leds, div_round_nearest(x, 10), div_round_nearest(y, 10));
+
+        if (updated) {
+            write_packet(get_scalars()[0], get_scalars()[1]); // Send the first two scalars as an example
+        }
     }
 
     return 0;

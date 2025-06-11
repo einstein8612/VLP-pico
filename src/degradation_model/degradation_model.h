@@ -2,6 +2,12 @@
 #define DEGRADATION_MODEL_H
 
 #include "../data/lambertian.h"
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #define MAX_SAMPLES 50            // Maximum number of samples to store for each LED
 #define BUFFER_SIZE_LEDS 1800     // 36 LEDs * 50 samples per LED
@@ -17,8 +23,9 @@
  * @param sample A float array of 36 RSS values for the current sample.
  * @param x The x-coordinate of the current sample's position.
  * @param y The y-coordinate of the current sample's position.
+ * @return true if the sample was added and scalars were updated, false if not enough samples yet.
  */
-void add_sample(float sample[TX_POSITIONS_COUNT], int x, int y);
+bool add_sample(float sample[TX_POSITIONS_COUNT], int x, int y);
 
 /**
  * @brief Returns a pointer to the current array of degradation scalars.
@@ -30,5 +37,9 @@ void add_sample(float sample[TX_POSITIONS_COUNT], int x, int y);
  * The size of this array is TX_POSITIONS_COUNT.
  */
 float *get_scalars();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DEGRADATION_MODEL_H

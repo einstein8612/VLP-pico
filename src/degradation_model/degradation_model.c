@@ -5,12 +5,13 @@
 
 #include "ransac_line.h"
 #include <string.h>
+#include <stdbool.h>
 
 float sample_buffer_leds[BUFFER_SIZE_LEDS] = {0.0f};
 int sample_buffer_positions[BUFFER_SIZE_POSITIONS] = {0};
 int sample_amount = 0;
 
-float scalars[TX_POSITIONS_COUNT] = {1};
+float scalars[TX_POSITIONS_COUNT] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
 static void update_scalars()
 {
@@ -30,8 +31,8 @@ static void update_scalars()
                 i                           // LED index
             );
 
-            samples[i] = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
-            reference_samples[i] = ref;
+            samples[j] = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
+            reference_samples[j] = ref;
         }
 
         // Fit the samples to the reference samples using RANSAC
@@ -40,7 +41,7 @@ static void update_scalars()
     }
 }
 
-void add_sample(float sample[TX_POSITIONS_COUNT], int x, int y)
+bool add_sample(float sample[TX_POSITIONS_COUNT], int x, int y)
 {
     // Copy the RSS sample to the buffer
     memcpy(&sample_buffer_leds[sample_amount * TX_POSITIONS_COUNT], sample, sizeof(float) * TX_POSITIONS_COUNT);
@@ -55,9 +56,10 @@ void add_sample(float sample[TX_POSITIONS_COUNT], int x, int y)
     if (sample_amount < MAX_SAMPLES)
     {
         // Not enough samples to update scalars
-        return;
+        return false;
     }
     update_scalars();
+    return true;
 }
 
 float *get_scalars()
