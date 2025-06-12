@@ -10,8 +10,8 @@ extern "C"
 #endif
 
 #define MAX_SAMPLES 50            // Maximum number of samples to store for each LED
-#define BUFFER_SIZE_LEDS 1800     // 36 LEDs * 50 samples per LED
-#define BUFFER_SIZE_POSITIONS 100 // 2D * 50 samples per LED
+#define BUFFER_SIZE_LEDS (36 * MAX_SAMPLES)     // 36 LEDs * 50 samples per LED
+#define BUFFER_SIZE_POSITIONS (2 * MAX_SAMPLES) // 2D * 50 samples per LED
 
 /**
  * @brief Adds a new RSS sample and its corresponding position to the internal buffer.

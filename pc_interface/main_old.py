@@ -22,8 +22,7 @@ def main():
         now = time.time()
         total_error = 0
         for i in tqdm(range(len(xs))):
-            x_normalized = xs.iloc[i] / np.linalg.norm(xs.iloc[i])
-            packet = pack_input(1, x_normalized.tolist())
+            packet = pack_input(1, xs.iloc[i].tolist())
             ser.write(packet)
 
             bytes = ser.read_until(expected=b"BIGGER_THAN_8", size=8)

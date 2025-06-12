@@ -37,7 +37,7 @@ static void update_scalars()
 
         // Fit the samples to the reference samples using RANSAC
         scalars[i] *= fit(
-            samples, reference_samples, MAX_SAMPLES, 0.1f, 100, 0);
+            samples, reference_samples, MAX_SAMPLES, 1.0f, 10, 42);
     }
 }
 

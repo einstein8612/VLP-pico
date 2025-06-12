@@ -23,6 +23,37 @@ namespace
     alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 } // namespace
 
+static inline float fastInvSqrt(float x) {
+    float xhalf = 0.5f * x;
+    int i = *(int*)&x;              // treat float bits as int
+    i = 0x5f3759df - (i >> 1);     // initial magic guess
+    x = *(float*)&i;
+    x = x * (1.5f - xhalf * x * x); // 1st Newton iteration
+    // Optionally do a 2nd iteration for better accuracy:
+    // x = x * (1.5f - xhalf * x * x);
+    return x;
+}
+
+
+// Normalize a vector of length 'len' in-place using Euclidean norm
+static inline void normalize(float *vec, int len)
+{
+    float norm = 0.0f;
+    for (int i = 0; i < len; i++)
+    {
+        norm += vec[i] * vec[i];
+    }
+    float inv_norm = fastInvSqrt(norm);
+
+    if (norm > 0.0f)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            vec[i] *= inv_norm;
+        }
+    }
+}
+
 TfLiteStatus load_model(void)
 {
     tflite::InitializeTarget();
@@ -51,6 +82,9 @@ TfLiteStatus load_model(void)
     return kTfLiteOk;
 }
 
+// Predict function that takes an array of 36 LED values and outputs the predicted x and y coordinates
+// Will scale the input values using the scalars from the degradation model, normalize them, and then run inference
+// This replaces the LED input with the scaled values from the degradation model as a side effect
 TfLiteStatus predict(float leds[36], float *x, float *y)
 {
     if (!interpreter)
@@ -58,11 +92,21 @@ TfLiteStatus predict(float leds[36], float *x, float *y)
 
     float *scalars = get_scalars();
 
+    float temp_input[36];
+    // Copy the input data to the temp input tensor
+    for (int i = 0; i < 36; i++)
+    {
+        temp_input[i] = leds[i] * scalars[i];
+        leds[i] = temp_input[i];
+    }
+    // Normalize the input data with Euclidean normalization
+    normalize(temp_input, 36);
+
     // Place the quantized input in the model's input tensor
     for (int i = 0; i < 36; i++)
     {
         input->data.int8[i] = static_cast<int8_t>(
-            ((leds[i] * scalars[i]) / input->params.scale) + input->params.zero_point);
+            (temp_input[i] / input->params.scale) + input->params.zero_point);
     }
 
     // Run inference

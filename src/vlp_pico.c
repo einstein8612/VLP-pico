@@ -37,7 +37,7 @@ int main()
 
     while (true)
     {
-        sleep_ms(1); // Sleep to avoid busy-waiting
+        // sleep_ms(1); // Sleep to avoid busy-waiting
 
         // Read a packet with a timeout
         IncomingPacket packet;

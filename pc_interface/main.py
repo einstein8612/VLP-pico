@@ -171,9 +171,9 @@ def main(args):
     if not args.save:
         return
     
-    avg_decay = relative_decay.mean(dim=1).cpu().numpy()
-    min_decay = relative_decay.min(dim=1).values.cpu().numpy()
-    max_decay = relative_decay.max(dim=1).values.cpu().numpy()
+    avg_decay = relative_decay.mean()
+    min_decay = relative_decay.min()
+    max_decay = relative_decay.max()
 
     now = int(time())
     
