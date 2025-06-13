@@ -12,43 +12,102 @@ import torch
 import torch.nn as nn
 
 import tensorflow as tf
+from tensorflow.keras import layers, models
 
 import numpy as np
 
 
 # Define PyTorch model
+class BottleneckBlock(nn.Module):
+    def __init__(self, dim, factor):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, int(dim * factor)),
+            nn.ReLU(),
+            nn.Linear(int(dim * factor), dim)
+        )
+        self.activation = nn.ReLU()
+
+    def forward(self, x):
+        return self.activation(self.net(x) + x)  # residual
+
+class MLPResNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.norm = NormalizeInput()
+
+        self.entry = nn.Sequential(
+            nn.Linear(36, 256),
+            nn.ReLU6()
+        )
+
+        self.res_block1 = BottleneckBlock(256, 0.1)
+        self.res_block2 = BottleneckBlock(256, 0.1)
+
+        self.out = nn.Sequential(
+            nn.Linear(256, 2)
+        )
+
+    def forward(self, x):
+        x = self.norm(x)
+        x = self.entry(x)
+        x = self.res_block1(x)
+        x = self.res_block2(x)
+        return self.out(x)
+
 class NormalizeInput(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x / (x.norm(dim=1, keepdim=True) + 1e-8)
 
-model = nn.Sequential(
-    NormalizeInput(),
-
-    nn.Linear(36, 64),
-    nn.ReLU6(),
-
-    nn.Linear(64, 32),
-    nn.LeakyReLU(0.1),
-
-    nn.Linear(32, 2),
-)
+model = MLPResNet()
 
 print("Defined PyTorch model")
 
 # Define Keras model
+class BottleneckBlock(layers.Layer):
+    def __init__(self, dim, factor, name_prefix=""):
+        super().__init__()
+        hidden_dim = int(dim * factor)
+        self.net = models.Sequential([
+            layers.Dense(hidden_dim, name=f'{name_prefix}_dense1'),
+            layers.Activation('relu'),
+            layers.Dense(dim, name=f'{name_prefix}_dense2')
+        ])
+        self.activation = layers.Activation('relu')
+    
+    def get_layer(self, name):
+        return self.net.get_layer(name)
 
-model_tf = tf.keras.Sequential([
-    tf.keras.layers.Dense(64, activation=tf.nn.relu6, name='linear1', input_shape=(36,)),
-    tf.keras.layers.Dense(32, name='linear2'),
-    tf.keras.layers.LeakyReLU(alpha=0.1),
-    tf.keras.layers.Dense(2, name='linear3'),
-])
+    def call(self, x):
+        return self.activation(self.net(x) + x)
+
+class MLPResNet(tf.keras.Model):
+    def __init__(self):
+        super().__init__()
+        self.entry = models.Sequential([
+            layers.Dense(256, input_shape=(36,), name='linear1'),
+            layers.ReLU()
+        ], name='entry')
+
+        self.res_block1 = BottleneckBlock(256, 0.1, name_prefix="res1")
+        self.res_block2 = BottleneckBlock(256, 0.1, name_prefix="res2")
+
+        self.out = layers.Dense(2, name='linear3')
+
+    def call(self, x):
+        # x = self.norm(x) # Remember to normalize input in C code
+        x = self.entry(x)
+        x = self.res_block1(x)
+        x = self.res_block2(x)
+        return self.out(x)
+
+model_tf = MLPResNet()
 
 print("Defined Keras model")
 
 # Define layer names and corresponding PyTorch keys
-layer_names = ['linear1', 'linear2', 'linear3']
-pt_layer_keys = ['1', '3', '5']
+layer_names = ['entry.linear1', 'bottleneck_block.res1_dense1', 'bottleneck_block.res1_dense2', 'bottleneck_block_1.res2_dense1', 'bottleneck_block_1.res2_dense2', 'linear3']
+pt_layer_keys = ['entry.0', 'res_block1.net.0', 'res_block1.net.2', 'res_block2.net.0', 'res_block2.net.2', 'out.0']
 
 # Triggers layer builds
 with tf.device('/CPU:0'):
@@ -61,7 +120,12 @@ model.load_state_dict(state_dict)
 for tf_name, pt_idx in zip(layer_names, pt_layer_keys):
     W = state_dict[f'{pt_idx}.weight'].numpy().T  # [in, out] for TF
     b = state_dict[f'{pt_idx}.bias'].numpy()
-    model_tf.get_layer(tf_name).set_weights([W, b])
+
+    walk = model_tf.get_layer(tf_name.split('.')[0])
+    for part in tf_name.split('.')[1:]:
+        walk = walk.get_layer(part)
+
+    walk.set_weights([W, b])
 
 model_tf.trainable = False
 
@@ -80,10 +144,11 @@ print("TensorFlow output:", tf_output)
 assert np.allclose(pt_output, tf_output, atol=1e-6), "Outputs are not close enough!"
 
 def representative_dataset():
-    tf.random.set_seed(42)
-    for _ in range(1000):
-        data = tf.random.uniform(shape=(1, 36), dtype=tf.float32)
-        yield [data]
+    # Load your CSV once
+    data = np.loadtxt("pc_interface/test.csv", delimiter=",", skiprows=1, dtype=np.float32)[:, 2:]
+
+    for row in data:
+        yield [tf.convert_to_tensor([row], dtype=tf.float32)]
 
 # Start converting to TFLite
 converter = tf.lite.TFLiteConverter.from_keras_model(model_tf)

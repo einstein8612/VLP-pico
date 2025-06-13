@@ -62,9 +62,10 @@ TfLiteStatus load_model(void)
     TFLITE_CHECK_EQ(model->version(), TFLITE_SCHEMA_VERSION);
 
     // This pulls in all the operation implementations we need.
-    static tflite::MicroMutableOpResolver<2> op_resolver;
+    static tflite::MicroMutableOpResolver<3> op_resolver;
     TF_LITE_ENSURE_STATUS(op_resolver.AddFullyConnected());
-    TF_LITE_ENSURE_STATUS(op_resolver.AddLeakyRelu());
+    TF_LITE_ENSURE_STATUS(op_resolver.AddRelu());
+    TF_LITE_ENSURE_STATUS(op_resolver.AddAdd());
 
     // Build an interpreter to run the model with.
     static tflite::MicroInterpreter static_interpreter(
