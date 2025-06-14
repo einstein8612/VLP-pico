@@ -38,11 +38,11 @@ class MLPResNet(nn.Module):
 
         self.entry = nn.Sequential(
             nn.Linear(36, 256),
-            nn.ReLU6()
+            nn.ReLU()
         )
 
-        self.res_block1 = BottleneckBlock(256, 0.1)
-        self.res_block2 = BottleneckBlock(256, 0.1)
+        self.res_block1 = BottleneckBlock(256, 0.25)
+        self.res_block2 = BottleneckBlock(256, 0.25)
 
         self.out = nn.Sequential(
             nn.Linear(256, 2)
@@ -74,7 +74,7 @@ class BottleneckBlock(layers.Layer):
             layers.Dense(dim, name=f'{name_prefix}_dense2')
         ])
         self.activation = layers.Activation('relu')
-    
+
     def get_layer(self, name):
         return self.net.get_layer(name)
 
@@ -89,8 +89,8 @@ class MLPResNet(tf.keras.Model):
             layers.ReLU()
         ], name='entry')
 
-        self.res_block1 = BottleneckBlock(256, 0.1, name_prefix="res1")
-        self.res_block2 = BottleneckBlock(256, 0.1, name_prefix="res2")
+        self.res_block1 = BottleneckBlock(256, 0.25, name_prefix="res1")
+        self.res_block2 = BottleneckBlock(256, 0.25, name_prefix="res2")
 
         self.out = layers.Dense(2, name='linear3')
 
