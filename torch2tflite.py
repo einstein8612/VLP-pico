@@ -148,6 +148,7 @@ def representative_dataset():
     data = np.loadtxt("pc_interface/test.csv", delimiter=",", skiprows=1, dtype=np.float32)[:, 2:]
 
     for row in data:
+        row = row / (np.linalg.norm(row) + 1e-8)
         yield [tf.convert_to_tensor([row], dtype=tf.float32)]
 
 # Start converting to TFLite
