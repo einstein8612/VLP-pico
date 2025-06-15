@@ -147,6 +147,7 @@ def main(args):
         f"Generated {aged_samples_X.shape[0]*aged_samples_X.shape[1]} samples; {aged_samples_X.shape[1]} samples at {aged_samples_X.shape[0]} timesteps")
 
     test_X, test_y = generate_test_set(data, valid_mask, 0.02, rng)
+    test_X, test_y = test_X[:1000], test_y[:1000]
     test_y *= 10  # Scale the test set to mm
 
     print(f"Connecting to model Pico at {args.pico_serial_port}")
@@ -171,9 +172,9 @@ def main(args):
     if not args.save:
         return
     
-    avg_decay = relative_decay.mean()
-    min_decay = relative_decay.min()
-    max_decay = relative_decay.max()
+    avg_decay = relative_decay.mean(axis=1)
+    min_decay = relative_decay.min(axis=1)
+    max_decay = relative_decay.max(axis=1)
 
     now = int(time())
     
