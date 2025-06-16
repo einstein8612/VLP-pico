@@ -109,9 +109,16 @@ def predict(serial_conn: serial.Serial, inputs: npt.NDArray, eval_flag: int = 1)
             output[i] = np.array([x, y])
 
     if eval_flag == 0:
-        response_bytes = serial_conn.read_until("LONGER_THAN_8", 8)
-        x, y = unpack_output(response_bytes)
-        print(f"Model warmup response: x={x}, y={y}")
+        print("Scalars: ", end="")
+        for i in range(18):
+            response_bytes = serial_conn.read_until("LONGER_THAN_8", 8)
+            li, li2 = unpack_output(response_bytes)
+            print(f"{li:.2f}, {li2:.2f}", end="")
+
+            if i < 17:
+                print(", ", end="")
+
+        print()
 
     return output
 
@@ -178,7 +185,7 @@ def main(args):
 
     now = int(time())
 
-    os.makedirs(f"./saved_timeseries_run/{now}", exist_ok=True)
+    os.makedirs(f"./saved_timeseries_runs/{now}", exist_ok=True)
 
     # Save the results
     _, axs = plt.subplots(3, figsize=(10, 15))
@@ -229,7 +236,7 @@ def main(args):
         "total_time": bar.format_dict['elapsed']
     }
 
-    with open(f"./saved_timeseries_run/{now}/results.json", "w") as f:
+    with open(f"./saved_timeseries_runs/{now}/results.json", "w") as f:
         json.dump(results, f, indent=4)
 
 
