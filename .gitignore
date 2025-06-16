@@ -4,3 +4,6 @@
 
 build
 third_party
+
+pc_interface/saved_timeseries_runs/*
+!pc_interface/saved_timeseries_runs/*.json
