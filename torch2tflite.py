@@ -148,8 +148,11 @@ def representative_dataset():
     data = np.loadtxt("pc_interface/test.csv", delimiter=",", skiprows=1, dtype=np.float32)[:, 2:]
 
     for row in data:
-        row = row / (np.linalg.norm(row) + 1e-8)
-        yield [tf.convert_to_tensor([row], dtype=tf.float32)]
+        noise = np.random.normal(0, 0.005, size=row.shape)  # adjust stddev as needed
+        row_noisy = row + noise
+
+        row_noisy = row_noisy / (np.linalg.norm(row_noisy) + 1e-8)
+        yield [tf.convert_to_tensor([row_noisy], dtype=tf.float32)]
 
 # Start converting to TFLite
 converter = tf.lite.TFLiteConverter.from_keras_model(model_tf)

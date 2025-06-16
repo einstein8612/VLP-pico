@@ -177,8 +177,8 @@ def main(args):
     max_decay = relative_decay.max(axis=1)
 
     now = int(time())
-    
-    os.makedirs(f"./saved_timeseries_run", exist_ok=True)
+
+    os.makedirs(f"./saved_timeseries_run/{now}", exist_ok=True)
 
     # Save the results
     _, axs = plt.subplots(3, figsize=(10, 15))
@@ -213,7 +213,7 @@ def main(args):
     axs[2].fill_between(timesteps, min_decay, max_decay, alpha=0.2, label="Min/Max Decay")
     axs[2].legend()
 
-    plt.show()
+    plt.savefig(f"./saved_timeseries_runs/{now}/graph.png")
     
     results = {
         "task": "PICO-REAL",
@@ -229,7 +229,7 @@ def main(args):
         "total_time": bar.format_dict['elapsed']
     }
 
-    with open(f"./saved_timeseries_run/results.json", "w") as f:
+    with open(f"./saved_timeseries_run/{now}/results.json", "w") as f:
         json.dump(results, f, indent=4)
 
 

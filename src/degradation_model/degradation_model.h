@@ -25,7 +25,7 @@ extern "C"
  * @param y The y-coordinate of the current sample's position.
  * @return true if the sample was added and scalars were updated, false if not enough samples yet.
  */
-bool add_sample(float sample[TX_POSITIONS_COUNT], int x, int y);
+bool add_sample(float sample[TX_POSITIONS_COUNT], float x, float y);
 
 /**
  * @brief Returns a pointer to the current array of degradation scalars.

@@ -13,6 +13,11 @@ int sample_amount = 0;
 
 float scalars[TX_POSITIONS_COUNT] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
+static inline int div_round_nearest(int a, int b)
+{
+    return (a + (b >> 1)) / b;
+}
+
 static void update_scalars()
 {
     sample_amount = 0; // Reset to zero
@@ -22,6 +27,7 @@ static void update_scalars()
 
     for (int i = 0; i < TX_POSITIONS_COUNT; i++)
     {
+        int sample_count = 0; // Valid sample count for this LED
         for (int j = 0; j < MAX_SAMPLES; j++)
         {
             // Get the reference RSS sample for the current LED position
@@ -31,23 +37,30 @@ static void update_scalars()
                 i                           // LED index
             );
 
-            samples[j] = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
-            reference_samples[j] = ref;
+            if (ref < 0.0f)
+            {
+                continue;
+            }
+
+            samples[sample_count] = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
+            reference_samples[sample_count] = ref;
+            sample_count++;
         }
 
         // Fit the samples to the reference samples using RANSAC
-        scalars[i] *= fit(
-            samples, reference_samples, MAX_SAMPLES, 1.0f, 10, 42);
+        float update = fit(
+            samples, reference_samples, sample_count, 1.0f, 10, 42);
+        scalars[i] *= update > 1 ? update : 1.0f; // Ensure scalars do not decrease below 1.0
     }
 }
 
-bool add_sample(float sample[TX_POSITIONS_COUNT], int x, int y)
+bool add_sample(float sample[TX_POSITIONS_COUNT], float x, float y)
 {
     // Copy the RSS sample to the buffer
     memcpy(&sample_buffer_leds[sample_amount * TX_POSITIONS_COUNT], sample, sizeof(float) * TX_POSITIONS_COUNT);
     // Store the position in the buffer
-    sample_buffer_positions[sample_amount * 2] = x;
-    sample_buffer_positions[sample_amount * 2 + 1] = y;
+    sample_buffer_positions[sample_amount * 2] = div_round_nearest(x, 10);
+    sample_buffer_positions[sample_amount * 2 + 1] = div_round_nearest(y, 10);
 
     // Increment the sample count
     sample_amount++;

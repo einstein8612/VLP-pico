@@ -3,6 +3,7 @@
 #include "downsampled_data.h"
 #include "lambertian.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct
@@ -50,25 +51,21 @@ static inline int get_flattened_index(int w, int h)
     return h * (downsampled_data_q_width * downsampled_data_q_no_led) + w * downsampled_data_q_no_led;
 }
 
-static inline void round_to_cross_points(int *x, int *y)
+static inline bool is_out_of_bounds(int x, int y)
 {
-    // Round w to the nearest cross point
-    if (*x >= cross_x_start && *x <= cross_x_end)
+    // Check if the coordinates are inside the cross points
+    if (x >= cross_x_start && x < cross_x_end)
     {
-        int distance_to_start = *x - cross_x_start;
-        int distance_to_end = cross_x_end - *x;
-
-        *x = (distance_to_start < distance_to_end) ? cross_x_start : cross_x_end;
+        return true;
     }
 
-    // Round h to the nearest cross point
-    if (*y >= cross_y_start && *y <= cross_y_end)
+    // Check if the coordinates are inside the cross points
+    if (y >= cross_y_start && y < cross_y_end)
     {
-        int distance_to_start = *y - cross_y_start;
-        int distance_to_end = cross_y_end - *y;
-
-        *y = (distance_to_start < distance_to_end) ? cross_y_start : cross_y_end;
+        return true;
     }
+
+    return false;
 }
 
 static inline int clamp_index(int value, int max)
@@ -82,8 +79,8 @@ static inline int clamp_index(int value, int max)
 
 const float *get_nearest_data_all_leds(int x, int y, int *nearest_x, int *nearest_y)
 {
-    // Ensure led_index is within bounds
-    round_to_cross_points(&x, &y);
+    if (is_out_of_bounds(x, y))
+        return (void *)0; // Out of bounds
 
     QuadrantInfo qinfo = get_quadrant_info(x, y);
     if (!qinfo.data)
