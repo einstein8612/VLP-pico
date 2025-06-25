@@ -2,6 +2,8 @@
 
 #include "pico/stdlib.h"
 
+#ifdef PICO_DEFAULT_LED_PIN
+
 #define LED_PIN PICO_DEFAULT_LED_PIN
 
 static bool last_led_state = false;
@@ -31,3 +33,5 @@ void led_blink(uint32_t times, uint32_t interval_ms)
     }
     gpio_put(LED_PIN, last_led_state); // Restore last state
 }
+
+#endif
