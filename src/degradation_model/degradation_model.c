@@ -32,25 +32,26 @@ static void update_scalars()
         {
             // Get the reference RSS sample for the current LED position
             float ref = get_augmented_data_for_led(
-                sample_buffer_positions[j*2], // Use the first sample's x position
+                sample_buffer_positions[j*2],   // Use the first sample's x position
                 sample_buffer_positions[j*2+1], // Use the first sample's y position
-                i                           // LED index
+                i                               // LED index
             );
+            float sample = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
 
             if (ref < 0.0f)
             {
                 continue;
             }
 
-            samples[sample_count] = sample_buffer_leds[j * TX_POSITIONS_COUNT + i];
+            samples[sample_count] = sample;
             reference_samples[sample_count] = ref;
             sample_count++;
         }
 
         // Fit the samples to the reference samples using RANSAC
         float update = fit(
-            samples, reference_samples, sample_count, 1.0f, 10, 42);
-        scalars[i] *= update > 1 ? update : 1.0f; // Ensure scalars do not decrease below 1.0
+            samples, reference_samples, sample_count, 0.1f, 25, 42);
+        scalars[i] *= update; // Ensure scalars do not decrease below 1.0
     }
 }
 

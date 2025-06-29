@@ -94,7 +94,7 @@ def generate_aged_samples(data: npt.NDArray, valid_mask: npt.NDArray, relative_d
 def predict(serial_conn: serial.Serial, inputs: npt.NDArray, eval_flag: int = 1) -> npt.NDArray:
     output = np.zeros((inputs.shape[0], 2), dtype=np.float32)
     for i in range(inputs.shape[0]):
-        input_i = inputs[i] / np.linalg.norm(inputs[i])  # Normalize the input
+        # input_i = inputs[i] / np.linalg.norm(inputs[i])  # Normalize the input
 
         # Pack the input data
         packed_input = pack_input(eval_flag, input_i.tolist())
@@ -109,16 +109,12 @@ def predict(serial_conn: serial.Serial, inputs: npt.NDArray, eval_flag: int = 1)
             output[i] = np.array([x, y])
 
     if eval_flag == 0:
-        print("Scalars: ", end="")
+        output = np.zeros((36,), dtype=np.float32)
         for i in range(18):
             response_bytes = serial_conn.read_until("LONGER_THAN_8", 8)
             li, li2 = unpack_output(response_bytes)
-            print(f"{li:.2f}, {li2:.2f}", end="")
-
-            if i < 17:
-                print(", ", end="")
-
-        print()
+            output[i*2] = li
+            output[i*2 + 1] = li2
 
     return output
 
@@ -238,6 +234,7 @@ def main(args):
 
     with open(f"./saved_timeseries_runs/{now}/results.json", "w") as f:
         json.dump(results, f, indent=4)
+
 
 
 if __name__ == "__main__":
