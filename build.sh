@@ -2,6 +2,7 @@
 
 DEBUG_LED=0
 CLEAN_BUILD=0
+BOARD="pico"  # default board
 
 # Parse all arguments
 for arg in "$@"; do
@@ -12,6 +13,13 @@ for arg in "$@"; do
             ;;
         --clean)
             CLEAN_BUILD=1
+            ;;
+        --board=*)
+            BOARD="${arg#*=}"
+            echo "🛠️  Target board set to '$BOARD'"
+            ;;
+        *)
+            echo "⚠️  Unknown argument: $arg"
             ;;
     esac
 done
@@ -25,7 +33,7 @@ fi
 mkdir -p build
 cd build || exit 1
 
-cmake -G Ninja -DPICO_BOARD=pico -DDEBUG_LED=${DEBUG_LED} ..
+cmake -G Ninja -DPICO_BOARD=${BOARD} -DDEBUG_LED=${DEBUG_LED} ..
 ninja
 if [ $? -ne 0 ]; then
     echo "Build failed"
